@@ -1,1 +1,86 @@
-chk
+#BACKGROUND
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases. 
+
+# SUMMARY
+following steps has been done for predicting the above
+
+1.Data processing
+
+2. Model selection by using train data
+
+3. validating in test data
+
+# DATA processing
+
+      library(caret)
+      train<-as.data.frame(read.csv("pml-training.csv"))
+      test<-as.data.frame(read.csv("pml-testing.csv"))
+
+data and packages are loaded now
+
+      na<-sapply(train,function(x)mean(is.na(x)))>0.8
+      train1<-train[,na=="FALSE"]
+      zero<-nearZeroVar(train1)
+      train1<-train1[,-zero]
+      train1<-train1[,-c(1:5)]
+      head(train1)
+
+NA values and near zero values taken out from data. Timestatmp & other dummy label columns taken out
+  
+      train1<-train1[,-c(1:1)]
+ 
+There was num_column and taken out by above code
+
+by now training dataset has (19622 rows, 53 cols)
+
+      part<-createDataPartition(train1$classe,p=0.7,list=FALSE)
+      train2<-train1[part,]
+      test2<-train1[-part,]
+  
+Current training set furthur divided to 2 (train and test)
+
+#Model Selection
+
+      gbmtrc <- trainControl(method = "repeatedcv", number = 5, repeats = 1, verboseIter = FALSE)
+      gbm <- train(classe ~ ., data = train2, trControl = gbmtrc, method = "gbm", verbose = FALSE)
+      print(gbm)
+
+ generalized boosted model created to see the accuracy of the prediction.
+
+      rftrc<-trainControl(method="cv",number=3,verboseIter=FALSE)
+      rfm<-train(classe~.,data=train2,method="rf",trControl=rftrc)
+      print(rfm) 
+
+ random forest model created to see the accuracy of the prediction
+ 
+ random forest gave considerably high accuracy than generalized boosted model.Hence 
+ 
+ hence random forest chosen for validation
+ 
+      rfmptest<-(rfm,test2)
+      rfmptest<-predict(rfm,test2)
+      table(rfmptest)
+
+# prediction output
+   A    B    C    D    E 
+1677 1140 1036  960 1072 
+
+# actual data 
+   A    B    C    D    E 
+1674 1139 1026  964 1082 
+
+Considering only few errors same model used for 20 test case
+
+# validation 
+
+      rfpfnl<-predict(rfm,test)
+      rfpfnl
+# Final Output
+
+ B A B A A E D B A A B C B A E E A B B B
+
+
+ 
+
+
+
